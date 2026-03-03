@@ -1,4 +1,4 @@
-package com.example.greenguide
+package com.greenguide.greenguide
 
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -37,24 +37,26 @@ fun GreenGuideDashboard() {
     var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
     var resultText by remember { mutableStateOf("Ready to identify a plant?") }
 
-    // 1. Create the Camera Launcher
+    // Initialize your AI Brain
+    val classifier: PlantClassifier = remember { PlantClassifier(context) }
+
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
         if (bitmap != null) {
             capturedImage = bitmap
-            resultText = "AI is analyzing... 🌿"
+            // RUN AI PREDICTION
+            resultText = classifier.classify(bitmap)
         }
     }
 
-    // 2. Create a Permission Launcher to prevent the crash
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            cameraLauncher.launch() // Only launch if user said YES
+            cameraLauncher.launch()
         } else {
-            Toast.makeText(context, "Camera permission is required to scan plants", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Camera permission required", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -77,10 +79,7 @@ fun GreenGuideDashboard() {
         }
 
         Button(
-            onClick = {
-                // Fix: Request permission instead of just launching
-                permissionLauncher.launch(android.Manifest.permission.CAMERA)
-            },
+            onClick = { permissionLauncher.launch(android.Manifest.permission.CAMERA) },
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 40.dp).fillMaxWidth(0.8f)
         ) {
             Text("SCAN PLANT 📸")

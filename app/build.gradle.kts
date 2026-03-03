@@ -5,11 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.greenguide"
+    // RECTIFIED: Namespace must match the package in your Kotlin files
+    namespace = "com.greenguide.greenguide"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.greenguide"
+        // RECTIFIED: ApplicationId must match your package name
+        applicationId = "com.greenguide.greenguide"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -26,7 +28,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    // RECTIFIED: Replaced deprecated kotlinOptions with modern compilerOptions
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
@@ -44,19 +45,17 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
-
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // AI LIBRARIES
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 }
-
