@@ -1,47 +1,27 @@
 package com.greenguide.greenguide
 
+import android.app.Activity
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.greenguide.greenguide.ui.theme.GreenGuideTheme
+import android.webkit.WebView
+import android.webkit.WebViewClient
 
-class MainActivity : ComponentActivity() {
+class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            GreenGuideTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
-    }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+        // Connects to your XML
+        setContentView(R.layout.activity_main)
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GreenGuideTheme {
-        Greeting("Android")
+        val myWebView: WebView = findViewById(R.id.greenGuideWebView)
+
+        // Enables your Google/FB login & AI logic
+        myWebView.settings.javaScriptEnabled = true
+        myWebView.settings.domStorageEnabled = true
+
+        // Keeps the app inside the window
+        myWebView.webViewClient = WebViewClient()
+
+        // Loads your GreenGuide HTML from the assets folder
+        myWebView.loadUrl("file:///android_asset/index.html")
     }
 }
