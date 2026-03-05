@@ -1,0 +1,348 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenGuide - AI Plant Assistant</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <style>
+
+        :root{--primary-green:#2e7d32;--light-green:#4caf50;--white:#ffffff;}
+
+        body,html{
+        margin:0;
+        padding:0;
+        font-family:'Roboto',sans-serif;
+        height:100vh;
+        overflow:hidden;
+        }
+
+        #splash-screen{
+        position:fixed;
+        width:100%;
+        height:100%;
+        background-color:var(--primary-green);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        z-index:1000;
+        }
+
+        .splash-circle{
+        width:220px;
+        height:220px;
+        background:var(--white);
+        border-radius:50%;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .splash-circle h1{
+        color:var(--primary-green);
+        font-size:24px;
+        font-weight:800;
+        margin:0;
+        }
+
+        .auth-screen{
+        position:fixed;
+        width:100%;
+        height:100%;
+        background-color:var(--primary-green);
+        display:none;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        color:white;
+        }
+
+        .auth-container{
+        width:320px;
+        text-align:center;
+        }
+
+        .input-group input{
+        width:100%;
+        padding:15px;
+        border-radius:12px;
+        border:none;
+        margin-bottom:10px;
+        }
+
+        .btn-auth{
+        width:100%;
+        padding:15px;
+        border-radius:12px;
+        border:none;
+        font-weight:bold;
+        cursor:pointer;
+        background:white;
+        color:var(--primary-green);
+        }
+
+        #main-app{
+        display:none;
+        height:100vh;
+        background:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6') center/cover no-repeat fixed;
+        justify-content:center;
+        align-items:center;
+        }
+
+        .app-card{
+        background:rgba(255,255,255,.96);
+        width:450px;
+        max-width:95%;
+        height:90vh;
+        border-radius:30px;
+        display:flex;
+        flex-direction:column;
+        overflow:hidden;
+        }
+
+        .header{
+        background:var(--primary-green);
+        color:white;
+        padding:20px;
+        }
+
+        .content{
+        flex:1;
+        overflow-y:auto;
+        padding:20px;
+        }
+
+        .upload-box{
+        background:#f1f8e9;
+        border:2px dashed var(--light-green);
+        padding:20px;
+        border-radius:20px;
+        text-align:center;
+        }
+
+        #preview{
+        width:100%;
+        border-radius:15px;
+        margin-top:15px;
+        display:none;
+        }
+
+        .predict-btn{
+        background:var(--primary-green);
+        color:white;
+        border:none;
+        padding:12px;
+        width:100%;
+        border-radius:10px;
+        font-weight:bold;
+        margin-top:10px;
+        cursor:pointer;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div id="splash-screen">
+    <div class="splash-circle">
+        <h1>GREEN<br>GUIDE</h1>
+    </div>
+</div>
+
+<div id="signup-screen" class="auth-screen">
+
+    <div class="auth-container">
+
+        <i class="fas fa-mobile-alt" style="font-size:60px;margin-bottom:20px;"></i>
+
+        <h2>Login with Phone</h2>
+
+        <div class="input-group">
+            <input type="text" id="regName" placeholder="Full Name">
+        </div>
+
+        <div class="input-group">
+            <input type="tel" id="regPhone" placeholder="Phone Number">
+        </div>
+
+        <div id="recaptcha-container"></div>
+
+        <button class="btn-auth" onclick="requestOTP()">SEND OTP</button>
+
+    </div>
+
+</div>
+
+<div id="otp-screen" class="auth-screen">
+
+    <div class="auth-container">
+
+        <h2>Verify OTP</h2>
+
+        <input type="number" id="otpInput" placeholder="Enter OTP">
+
+        <br><br>
+
+        <button class="btn-auth" onclick="verifyOTP()">VERIFY</button>
+
+    </div>
+
+</div>
+
+<div id="main-app">
+
+    <div class="app-card">
+
+        <div class="header">
+            <h2 id="welcomeUser">Hi User</h2>
+        </div>
+
+        <div class="content">
+
+            <div class="upload-box">
+
+                <input type="file" id="fileInput" accept="image/*">
+
+                <img id="preview">
+
+                <button class="predict-btn" onclick="runPrediction()">IDENTIFY</button>
+
+                <div id="result"></div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+    /* Firebase Config */
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyD-VRPXbH-QYIGr9MnWha1XwZSh5Vhbyio",
+    authDomain: "greenguide-a3034.firebaseapp.com",
+    projectId: "greenguide-a3034",
+    storageBucket: "greenguide-a3034.firebasestorage.app",
+    messagingSenderId: "328134711586",
+    appId: "1:328134711586:web:e3dde6b8f840783087ed7b"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    /* Splash */
+
+    setTimeout(()=>{
+    document.getElementById("splash-screen").style.display="none";
+    document.getElementById("signup-screen").style.display="flex";
+    },3000);
+
+    let confirmationResult;
+    let userName="";
+
+    /* Send OTP */
+
+    function requestOTP(){
+
+    userName=document.getElementById("regName").value;
+    let phone=document.getElementById("regPhone").value;
+
+    if(userName=="" || phone.length<10){
+    alert("Enter valid details");
+    return;
+    }
+
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+    'recaptcha-container',
+    {'size':'normal'}
+    );
+
+    const appVerifier = window.recaptchaVerifier;
+
+    firebase.auth().signInWithPhoneNumber("+91"+phone, appVerifier)
+    .then(function(result){
+
+    confirmationResult=result;
+
+    alert("OTP Sent");
+
+    document.getElementById("signup-screen").style.display="none";
+    document.getElementById("otp-screen").style.display="flex";
+
+    }).catch(function(error){
+
+    alert(error.message);
+
+    });
+
+    }
+
+    /* Verify OTP */
+
+    function verifyOTP(){
+
+    let code=document.getElementById("otpInput").value;
+
+    confirmationResult.confirm(code).then(function(result){
+
+    document.getElementById("otp-screen").style.display="none";
+    document.getElementById("main-app").style.display="flex";
+
+    document.getElementById("welcomeUser").innerText="Hi "+userName+" 👋";
+
+    }).catch(function(error){
+
+    alert("Invalid OTP");
+
+    });
+
+    }
+
+    /* Image Preview */
+
+    const fileInput=document.getElementById("fileInput");
+
+    fileInput.onchange=e=>{
+
+    const file=e.target.files[0];
+
+    if(file){
+
+    const preview=document.getElementById("preview");
+
+    preview.src=URL.createObjectURL(file);
+    preview.style.display="block";
+
+    }
+
+    };
+
+    function runPrediction(){
+
+    const res=document.getElementById("result");
+
+    if(document.getElementById("preview").src.includes("blob")){
+    res.innerHTML="Prediction: Tomato Early Blight";
+    }else{
+    alert("Upload image first!");
+    }
+
+    }
+
+</script>
+
+</body>
+</html>
+```

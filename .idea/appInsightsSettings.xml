@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.greenguide.greenguide" />
+                  <option name="mobileSdkAppId" value="1:328134711586:android:247ec0244c2797be87ed7b" />
+                  <option name="projectId" value="greenguide-a3034" />
+                  <option name="projectNumber" value="328134711586" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
